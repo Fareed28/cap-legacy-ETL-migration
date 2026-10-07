@@ -9,7 +9,6 @@ name: hotel_dw_etl CI
 
 # Deploy only after a PR is merged into main (push to main).
 # "Approved" is enforced by branch protection on main, not by this trigger.
-# Optional: keep workflow_dispatch for manual emergency runs.
 on:
   push:
     branches: [main]
@@ -43,7 +42,20 @@ jobs:
         run: databricks bundle deploy -t ci
 
       - name: Refresh Lakeflow pipeline
-        run: databricks bundle run -t ci hotel_dw_etl --refresh-all
+        run: |
+          set -euo pipefail
+          # Deploy can leave an in-flight update; only one update may run at a time.
+          PIPELINE_ID="$(
+            databricks bundle summary -t ci 2>&1 \
+              | grep -oE 'pipelines/[0-9a-f-]{36}' \
+              | head -1 \
+              | cut -d/ -f2 || true
+          )"
+          if [ -n "${PIPELINE_ID}" ]; then
+            echo "Ensuring pipeline ${PIPELINE_ID} is IDLE before refresh..."
+            databricks pipelines stop "${PIPELINE_ID}"
+          fi
+          databricks bundle run -t ci hotel_dw_etl --refresh-all
 
       - name: Run parity job
         run: databricks bundle run -t ci hotel_dw_parity
