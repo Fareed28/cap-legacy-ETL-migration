@@ -49,3 +49,5 @@ First-time workspace setup: run `scripts/bootstrap_schema.sql`, then `scripts/in
 - [Migration notes](docs/migration_notes.md)
 - [Runbook](docs/runbook.md)
 - [Ownership](docs/ownership.md)
+
+<!-- CI smoke: merge to main should trigger hotel_dw_etl CI -->
