@@ -6,15 +6,27 @@
 - Access to `rud_2026.reference` (read) and `rud_2026.rud_fahamed` (write)
 - Compute tagged `rud_participant`
 
-## Deploy (dev)
+## Deploy
+
+**Rule:** only one pipeline may own tables in a schema.
+
+| Target | Schema | Use for |
+|--------|--------|---------|
+| `dev` | `rud_fahamed_dev` | Local experiments (won’t fight CI) |
+| `ci` / `staging` | `rud_fahamed` | Official CAP-8 parity / demo |
 
 ```bash
-cd hotel_dw_etl
-databricks bundle validate -t dev
+# local sandbox
 databricks bundle deploy -t dev
 databricks bundle run -t dev hotel_dw_etl --refresh-all
-databricks bundle run -t dev hotel_dw_parity
+
+# official schema (CI does this; or run manually as SP)
+databricks bundle deploy -t ci
+databricks bundle run -t ci hotel_dw_etl --refresh-all
+databricks bundle run -t ci hotel_dw_parity
 ```
+
+Create the sandbox schema once: `CREATE SCHEMA IF NOT EXISTS rud_2026.rud_fahamed_dev;`
 
 ## First-time setup
 

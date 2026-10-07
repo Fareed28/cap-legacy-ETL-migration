@@ -1,5 +1,8 @@
 # HotelDW ETL — Databricks Asset Bundle
 # Deploy from this directory: databricks bundle deploy -t <target>
+#
+# One Lakeflow pipeline owns one schema. Dev and CI must not write the same
+# UC tables or you get "already managed by pipeline …".
 
 bundle:
   name: hotel_dw_etl
@@ -26,7 +29,7 @@ sync:
     - docs/**
 
 targets:
-  # Personal / pair work — restricted to the deploying user
+  # Local/pair sandbox — separate schema so it never fights CI for table ownership
   dev:
     mode: development
     default: true
@@ -34,13 +37,13 @@ targets:
       root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
     variables:
       catalog: rud_2026
-      schema: rud_fahamed
+      schema: rud_fahamed_dev
       strict_parity: "false"
     permissions:
       - level: CAN_MANAGE
         user_name: ${workspace.current_user.userName}
 
-  # CI / staging — deploy as the run-as identity (SP in Actions), not /Workspace/Shared
+  # Official participant schema — owned by CI / staging pipeline only
   staging:
     mode: production
     workspace:
