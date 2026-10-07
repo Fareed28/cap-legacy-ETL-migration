@@ -26,6 +26,7 @@ sync:
     - docs/**
 
 targets:
+  # Personal / pair work — restricted to the deploying user
   dev:
     mode: development
     default: true
@@ -39,20 +40,27 @@ targets:
       - level: CAN_MANAGE
         user_name: ${workspace.current_user.userName}
 
+  # CI / staging — deploy as the run-as identity (SP in Actions), not /Workspace/Shared
   staging:
     mode: production
     workspace:
-      root_path: /Workspace/Shared/hotel_dw_etl/${bundle.target}
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
     variables:
       catalog: rud_2026
       schema: rud_fahamed
       strict_parity: "true"
+    permissions:
+      - level: CAN_MANAGE
+        user_name: ${workspace.current_user.userName}
 
   ci:
     mode: production
     workspace:
-      root_path: /Workspace/Shared/hotel_dw_etl/${bundle.target}
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
     variables:
       catalog: rud_2026
       schema: rud_fahamed
       strict_parity: "true"
+    permissions:
+      - level: CAN_MANAGE
+        user_name: ${workspace.current_user.userName}
