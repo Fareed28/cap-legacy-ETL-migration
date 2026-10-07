@@ -1,7 +1,8 @@
 resources:
   pipelines:
     hotel_dw_etl:
-      name: hotel_dw_etl
+      # Unique per target so CI (production mode) does not collide with an existing pipeline name
+      name: hotel_dw_etl_${bundle.target}
       catalog: ${var.catalog}
       schema: ${var.schema}
       serverless: true

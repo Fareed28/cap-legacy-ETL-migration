@@ -1,7 +1,7 @@
 resources:
   jobs:
     hotel_dw_parity:
-      name: hotel_dw_parity
+      name: hotel_dw_parity_${bundle.target}
       tags:
         project: hotel_dw_etl
         purpose: parity
