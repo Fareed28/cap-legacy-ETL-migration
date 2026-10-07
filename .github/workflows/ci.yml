@@ -41,6 +41,23 @@ jobs:
       - name: Bundle deploy
         run: databricks bundle deploy -t ci
 
+      - name: Grant read access to deployed workspace files
+        env:
+          WORKSPACE_READER: fahamed@presidio.com
+        run: |
+          set -euo pipefail
+          BUNDLE_FILES_PATH="$(databricks bundle validate -t ci -o json | jq -er '.workspace.file_path | select(type == "string" and length > 0)')"
+          BUNDLE_FOLDER_ID="$(databricks workspace get-status "$BUNDLE_FILES_PATH" -o json | jq -er 'select(.object_type == "DIRECTORY") | .object_id')"
+          ACCESS_JSON="$(jq -n --arg user "$WORKSPACE_READER" '{access_control_list: [{user_name: $user, permission_level: "CAN_READ"}]}')"
+          databricks workspace update-permissions directories "$BUNDLE_FOLDER_ID" --json "$ACCESS_JSON"
+          echo "Workspace files: $BUNDLE_FILES_PATH"
+          {
+            echo "### Deployed workspace files"
+            echo "Read access granted to $WORKSPACE_READER."
+            echo "Path: $BUNDLE_FILES_PATH"
+            echo "[Open files in Databricks](${DATABRICKS_HOST%/}/browse/folders/$BUNDLE_FOLDER_ID)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Refresh Lakeflow pipeline
         run: |
           set -euo pipefail

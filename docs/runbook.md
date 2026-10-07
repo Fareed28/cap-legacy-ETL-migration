@@ -68,3 +68,19 @@ CI deploys under `/Workspace/Users/<sp>/.bundle/...` (not Shared) so the folder 
 ## Parity results
 
 `rud_2026.rud_fahamed.parity_results`
+
+## View deployed CI source files
+
+After bundle deployment, GitHub Actions grants `fahamed@presidio.com` read access
+to the resolved `workspace.file_path` folder using an additive permissions update.
+The folder's child files inherit that access. This is separate from pipeline permissions.
+
+Open the Actions run summary and follow **Open files in Databricks**. The current
+path is `/Workspace/Users/<CI service principal>/.bundle/hotel_dw_etl/ci/files/`.
+Transformation SQL is under `src/hotel_dw_etl/transformations/`; the parity runner
+is under `tests/integration/parity/`. Use the direct link if the private parent
+folder or hidden `.bundle` folder is not visible in workspace navigation.
+
+The step grants read access only to deployed source files, not the principal's
+entire home directory or bundle state. Edit source through Git and redeploy.
+The access change takes effect only after this workflow step succeeds.
