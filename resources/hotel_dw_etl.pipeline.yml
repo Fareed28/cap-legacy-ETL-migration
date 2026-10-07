@@ -1,0 +1,21 @@
+resources:
+  pipelines:
+    hotel_dw_etl:
+      name: hotel_dw_etl
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      photon: true
+      channel: CURRENT
+      root_path: ../src/hotel_dw_etl
+      libraries:
+        - glob:
+            include: ../src/hotel_dw_etl/transformations/**
+      configuration:
+        catalog: ${var.catalog}
+        schema: ${var.schema}
+      tags:
+        project: hotel_dw_etl
+        layer: curated
+        rud_participant: "true"
+        use_case: CAP-8

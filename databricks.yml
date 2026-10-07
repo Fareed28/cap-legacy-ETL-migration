@@ -1,0 +1,58 @@
+# HotelDW ETL — Databricks Asset Bundle
+# Deploy from this directory: databricks bundle deploy -t <target>
+
+bundle:
+  name: hotel_dw_etl
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog name
+    default: rud_2026
+  schema:
+    description: Target schema for migrated DW tables (never write to reference)
+    default: rud_fahamed
+  strict_parity:
+    description: When true, fail the parity job if any table (including aggregates) mismatches
+    default: "true"
+
+sync:
+  include:
+    - src/**
+    - tests/**
+    - scripts/**
+    - docs/**
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      catalog: rud_2026
+      schema: rud_fahamed
+      strict_parity: "false"
+    permissions:
+      - level: CAN_MANAGE
+        user_name: ${workspace.current_user.userName}
+
+  staging:
+    mode: production
+    workspace:
+      root_path: /Workspace/Shared/hotel_dw_etl/${bundle.target}
+    variables:
+      catalog: rud_2026
+      schema: rud_fahamed
+      strict_parity: "true"
+
+  ci:
+    mode: production
+    workspace:
+      root_path: /Workspace/Shared/hotel_dw_etl/${bundle.target}
+    variables:
+      catalog: rud_2026
+      schema: rud_fahamed
+      strict_parity: "true"

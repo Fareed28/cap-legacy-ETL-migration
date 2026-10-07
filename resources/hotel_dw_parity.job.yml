@@ -1,0 +1,25 @@
+resources:
+  jobs:
+    hotel_dw_parity:
+      name: hotel_dw_parity
+      tags:
+        project: hotel_dw_etl
+        purpose: parity
+        rud_participant: "true"
+        use_case: CAP-8
+      parameters:
+        - name: strict_parity
+          default: ${var.strict_parity}
+      tasks:
+        - task_key: run_parity
+          description: Row-count and checksum parity vs rud_2026.reference.legacy_dw_*
+          environment_key: default
+          spark_python_task:
+            python_file: ../tests/integration/parity/run_parity.py
+            parameters:
+              - "--strict-parity={{ job.parameters.strict_parity }}"
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "2"
+            dependencies: []

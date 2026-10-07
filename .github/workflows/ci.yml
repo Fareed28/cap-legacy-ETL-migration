@@ -1,0 +1,48 @@
+# Validate, deploy, refresh pipeline, run parity against golden legacy_dw_* tables.
+#
+# Required GitHub secrets:
+#   DATABRICKS_HOST
+#   DATABRICKS_CLIENT_ID + DATABRICKS_CLIENT_SECRET  (service principal)
+#   — or DATABRICKS_TOKEN for PAT-based CI
+
+name: hotel_dw_etl CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: hotel-dw-etl-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy-parity:
+    name: validate → deploy → refresh → parity
+    runs-on: ubuntu-latest
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_BUNDLE_ENV: ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Databricks CLI
+        uses: databricks/setup-cli@v0.9.0
+
+      - name: Bundle validate
+        run: databricks bundle validate -t ci
+
+      - name: Bundle deploy
+        run: databricks bundle deploy -t ci
+
+      - name: Refresh Lakeflow pipeline
+        run: databricks bundle run -t ci hotel_dw_etl --refresh-all
+
+      - name: Run parity job
+        run: databricks bundle run -t ci hotel_dw_parity
